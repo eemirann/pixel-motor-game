@@ -4,8 +4,9 @@
 ## Flappy Face (mobil web)
 
 `index.html` tek dosyalık, mobil web tarayıcısında oynanan bir Flappy Bird klonu.
-Kuşun yerinde fotoğraftan kırpılmış yüz var (`assets/face.png`, sprite HTML'in içine
-base64 olarak gömülü — dosyayı tek başına açsan bile çalışır).
+Kuşun yerinde fotoğraftan kırpılmış yüzler var: açılışta **"HANGİ LUBUNYAYI
+SEÇİYORSUN"** menüsünden 5 karakterden biri seçiliyor (`assets/char1..5.png`,
+sprite'lar HTML'in içine base64 olarak gömülü — dosyayı tek başına açsan bile çalışır).
 
 ### Oynamak
 
@@ -16,12 +17,15 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 
 ### Kontroller
 
+- Açılışta bir karaktere dokun (Space seçiliyi onaylar)
 - **Dokun / tıkla / Space** → kanat çırp
 - Çarpınca panel açılır, tekrar dokunmak yeni oyun başlatır
-- En iyi skor `localStorage`'da saklanır
+- Başlangıç ve oyun sonu ekranındaki **KARAKTER DEĞİŞTİR** ile menüye dönülür
+- Seçilen karakter ve **karakter başına** en iyi skor `localStorage`'da saklanır
 
 ### Özellikler
 
+- 5 karakterli seçim menüsü; her karakterin kendi rekoru
 - Sabit yükseklikli (640 birim) sanal dünya; her ekran boyutunda aynı zorluk
 - `devicePixelRatio` desteği; dar/geniş ekranlarda letterbox, yatay modda da oynanır
 - Ardışık boruların dikey farkı sınırlı — her boşluk yetişilebilir mesafede
@@ -33,7 +37,11 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 ### Geliştirme notu
 
 Otomatik test için oyun durumu `window.__flappy` üzerinden okunabilir
-(`state`, `score`, `bird`, `pipes`, `world`, `flap()`).
+(`state`, `score`, `best`, `sel`, `chars`, `bird`, `pipes`, `world`, `flap()`,
+`pick(i)`, `goSelect()`). Durumlar: `0 READY, 1 PLAY, 2 DYING, 3 OVER, 4 SELECT`.
 
-Yüz sprite'ı kaynak fotoğraftan kırpıldı, 64x64'e indirilip pixel-art görünümü için
-nearest-neighbor ile büyütüldü ve dairesel maskeyle kesildi.
+Yüz sprite'ları kaynak fotoğraflardan kırpıldı, 64x64'e indirilip pixel-art görünümü
+için nearest-neighbor ile büyütüldü ve dairesel maskeyle kesildi.
+
+Yeni karakter eklemek için: sprite'ı `assets/` altına koy, base64'ünü `CHARS`
+dizisine `{ name, src }` olarak ekle — menü ızgarası kendini otomatik yeniden dizer.
