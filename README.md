@@ -26,8 +26,9 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 ### Özellikler
 
 - 5 karakterli seçim menüsü; her karakterin kendi rekoru
-- Karaktere özel çırpma sesi (BUKLE): menüde ♪ rozetiyle işaretli, ses WebAudio ile
-  çözülüp her dokunuşta baştan çalıyor; sesi olmayan karakterlerde klasik bip
+- Karaktere özel sesler: BUKLE'de çırpma sesi (`sfx`), REİS'te ölüm sesi (`dsfx`).
+  Menüde ♪ rozetiyle işaretli; WebAudio ile çözülüp çalınıyor, sesi olmayan
+  karakterlerde klasik bip devrede. Yeni oyuna başlarken çalan ses kesiliyor.
 - Sabit yükseklikli (640 birim) sanal dünya; her ekran boyutunda aynı zorluk
 - `devicePixelRatio` desteği; dar/geniş ekranlarda letterbox, yatay modda da oynanır
 - Ardışık boruların dikey farkı sınırlı — her boşluk yetişilebilir mesafede
