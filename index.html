@@ -58,13 +58,19 @@
   // ------------------------------------------------------- ortak rekor tablosu
   // Supabase projesinin genel (anon) bilgileri. Boş bırakılırsa oyun sadece
   // cihazdaki rekorlarla çalışır, hiçbir şey bozulmaz.
-  const SUPA_URL = "";   // örn. https://xxxxxxxx.supabase.co
-  const SUPA_KEY = "";   // anon public key
+  const SUPA_URL = "https://lsgqwwylijfdzbmkwrgc.supabase.co";
+  const SUPA_KEY = "sb_publishable_SB2H5bAE4eHvV8eikJKG0Q__";
 
   const cloudOn = () => !!(SUPA_URL && SUPA_KEY);
   let gBests = CHARS.map(() => null);    // herkesin gördüğü rekorlar (null = bilinmiyor)
 
-  const cloudHeaders = () => ({ apikey: SUPA_KEY, Authorization: "Bearer " + SUPA_KEY });
+  // Eski anon anahtarları JWT'dir ve Bearer ister; yeni sb_publishable_ anahtarlarında
+  // apikey başlığı tek başına yeterlidir (Bearer'a JWT olmayan değer koymak 401 döndürür).
+  const cloudHeaders = () => {
+    const h = { apikey: SUPA_KEY };
+    if (SUPA_KEY.startsWith("eyJ")) h.Authorization = "Bearer " + SUPA_KEY;
+    return h;
+  };
 
   function cloudLoad() {
     if (!cloudOn()) return;
