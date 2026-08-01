@@ -39,6 +39,26 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 - Sekme arka plana atılınca oyun ölmez, duraklar
 - Sayfa kaydırma, çift dokunuşla yakınlaştırma ve metin seçimi kapalı
 
+### Ortak rekor tablosu (Supabase)
+
+Her karakterin rekoru bütün oyunculara aynı görünür ve kalıcıdır. Bağlamak için:
+
+1. `supabase.sql` dosyasını Supabase panelindeki **SQL Editor**'e yapıştırıp çalıştır
+   (tablo + sadece rekoru yükselten `submit_score` fonksiyonunu kurar).
+2. `index.html` içindeki iki satırı doldur:
+
+   ```js
+   const SUPA_URL = "https://xxxxxxxx.supabase.co";
+   const SUPA_KEY = "<anon public key>";
+   ```
+
+Bunlar boş bırakılırsa oyun eskisi gibi yalnız cihazdaki rekorlarla çalışır; internet
+gitse bile menü ve oyun sonu ekranı yerel değerlere düşer, oyun bozulmaz.
+
+Yazma yalnızca `submit_score` üzerinden yapılır: gelen skor mevcut rekordan düşükse
+tabloya dokunulmaz, doğrudan insert/update/delete kapalıdır. `anon` anahtarı zaten
+herkese açık olacak şekilde tasarlanmıştır, sayfaya gömülmesi normaldir.
+
 ### Geliştirme notu
 
 Otomatik test için oyun durumu `window.__flappy` üzerinden okunabilir
