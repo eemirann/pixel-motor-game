@@ -26,7 +26,8 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 ### Özellikler
 
 - **Bonus turu** (BAĞIMLI'ya özel): yıldız taşıyan boru **altın sarısı** görünür,
-  yıldızı toplayınca 20 saniyelik şeker yağmuru başlar. Borular kaybolur, gökyüzü
+  yıldızı toplayınca şeker ekranındaki giriş sesi çalar ve 20 saniyelik şeker
+  yağmuru başlar. Borular kaybolur, gökyüzü
   şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Her çırpış +1 puan,
   şeker +1, altın şeker +5, ×2/×3 küreleri 8 saniyeliğine şeker başına puanı
   çarpar. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve

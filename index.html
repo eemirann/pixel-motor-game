@@ -798,10 +798,12 @@
       x: WORLD_W / 2, y: WORLD_H * 0.52, t: 0,
       text: "BONUS!", sub: BONUS_TIME + " SANİYE ŞEKER YAĞMURU", c: "#ffd54a"
     });
-    // küçük fanfar
-    beep(660, 0.10, "square", 0.06, 880);
-    setTimeout(() => beep(880, 0.10, "square", 0.06, 1170), 110);
-    setTimeout(() => beep(1170, 0.18, "square", 0.06, 1570), 230);
+    // şeker ekranındaki giriş sesinin aynısı; yüklenmediyse kısa fanfar
+    if (!playIntro()) {
+      beep(660, 0.10, "square", 0.06, 880);
+      setTimeout(() => beep(880, 0.10, "square", 0.06, 1170), 110);
+      setTimeout(() => beep(1170, 0.18, "square", 0.06, 1570), 230);
+    }
   }
 
   function endBonus() {
