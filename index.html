@@ -213,6 +213,7 @@
   let scorePop = 0;
   let shake = 0;
   let passed = 0;         // geçilen boru sayısı (zorluk buna göre artar, skora değil)
+  let grabbed = 0;        // toplanan çarpan sayısı (test için)
   let mult = 1;           // aktif çarpan
   let multT = 0;          // çarpanın kalan süresi (sn)
   const MULT_TIME = 8;
@@ -229,7 +230,7 @@
     { t: "bomb", m: 0.5, w: 5,  c: "#ff6b6b", label: "" }
   ];
   const PICK_W = PICKS.reduce((s, p) => s + p.w, 0);
-  const PICK_R = 15;
+  const PICK_R = 13;
 
   // ---------------------------------------------------------------- assets
   const faces = CHARS.map(c => {
@@ -377,17 +378,18 @@
     return { x, top, passed: false, pick: makePick(top) };
   }
 
-  // Boşluğun ortasına rastgele çarpan koy. İlk iki boru boş kalsın ki
-  // oyuncu daha 1 puan almadan çarpanla karşılaşmasın (0 × 5 = 0).
+  // Çarpanlar boşluğun ortasına değil, bir kenarına yakın durur: karşı taraftan
+  // dokunmadan geçilebilsin (özellikle bombadan kaçmak mümkün olsun).
+  // İlk iki boru boş kalır ki oyuncu daha puan almadan çarpanla karşılaşmasın.
   let pipeNo = 0;
   function makePick(top) {
-    if (pipeNo++ < 2 || Math.random() > 0.42) return null;
+    if (pipeNo++ < 2 || Math.random() > 0.24) return null;
     let r = Math.random() * PICK_W;
     let def = PICKS[0];
     for (const p of PICKS) { if (r < p.w) { def = p; break; } r -= p.w; }
-    const lo = top + PICK_R + 16;
-    const hi = top + PIPE_GAP - PICK_R - 16;
-    return { def, y: rand(Math.min(lo, hi), hi), taken: false, t: 0 };
+    const near = PICK_R + 19;                       // boru ağzına olan uzaklık
+    const y = Math.random() < 0.5 ? top + near : top + PIPE_GAP - near;
+    return { def, y, taken: false, t: 0 };
   }
 
   function goSelect() {
@@ -428,6 +430,7 @@
     bird.rot = 0;
     score = 0;
     passed = 0;
+    grabbed = 0;
     mult = 1;
     multT = 0;
     pops.length = 0;
@@ -582,7 +585,8 @@
           p.pick.t += dt;
           const dx = (p.x + PIPE_W / 2) - bx;
           const dy = p.pick.y - bird.y;
-          if (dx * dx + dy * dy < (BIRD_R + PICK_R) * (BIRD_R + PICK_R)) grab(p);
+          const rr = BIRD_R * 0.8 + PICK_R;   // görselden dar: sıyırmak toplamaz
+          if (dx * dx + dy * dy < rr * rr) grab(p);
         }
       }
 
@@ -633,6 +637,7 @@
   function grab(p) {
     const k = p.pick;
     k.taken = true;
+    grabbed++;
     const isBomb = k.def.t === "bomb";
     const before = score;
     if (isBomb) {
@@ -1270,6 +1275,7 @@
     goSelect,
     get bird() { return { x: BIRD_X(), y: bird.y, v: bird.v, r: BIRD_R }; },
     get pipes() { return pipes.map(p => ({ x: p.x, top: p.top, passed: p.passed })); },
+    get grabbed() { return grabbed; },
     get picks() {
       return pipes.filter(p => p.pick && !p.pick.taken)
                   .map(p => ({ x: p.x + PIPE_W / 2, y: p.pick.y, t: p.pick.def.t }));
