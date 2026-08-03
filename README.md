@@ -26,30 +26,33 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 ### Özellikler
 
 - **Bonus turu** (BAĞIMLI'ya özel): yıldız taşıyan boru **altın sarısı** görünür,
-  yıldızı toplayınca şeker ekranındaki giriş sesi çalar ve 20 saniyelik şeker
+  boru başına ~%2 çıkar; yıldızı toplayınca giriş sesi çalar ve 20 saniyelik şeker
   yağmuru başlar. Borular kaybolur, gökyüzü
   şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Her çırpış +1 puan
   (çarpandan bağımsız, düz 1), şeker +1, altın şeker +5. Yalnız bonusta çıkan
-  çarpan küreleri 8 saniyeliğine şeker başına puanı çarpar: ×2 (%48), ×3 (%27),
-  ×10 (%14), ×25 (%8), ×50 (%3) — büyükler parlayarak belli olur. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
+  çarpan küreleri 5 saniyeliğine şeker başına puanı çarpar: ×2 (%56), ×3 (%28),
+  ×10 (%11), ×25 (%4), ×50 (%1) — büyükler parlayarak belli olur. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
   hız ilk hâline döner.
 - **BUKLE'ye özel — fırtına bonusu**: aynı altın boru/yıldız sistemiyle açılır.
   Gökyüzü maviye döner, tepedeki bulut aşağı **yıldırım** savurur (hepsi kuşun
   sütununa doğru gelir, yoksa toplanamazdı). Yıldırım +1, altın yıldırım +5,
-  çırpış +1. Çarpanlar burada **birikir**: aldıkça toplanır (×2 + ×10 = ×12),
-  tur boyunca durur ve kuşun üstünde rozet olarak dizilir; toplam HUD'da yazar.
+  çırpış +1. Çarpanlar burada **birikir**: aldıkça toplanır (×2 + ×10 = ×12,
+  tavan ×25), tur boyunca durur ve kuşun üstünde rozet olarak dizilir; toplam HUD'da yazar.
 - **BAĞIMLI'ya özel** (karakterdeki `candy: true` bayrağı):
   - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
     kendiliğinden kapanır, dokununca hemen geçilir. Diğer karakterler doğrudan
     oyuna girer, ana ekran seçim menüsüdür.
   - Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5** ve nadiren **bomba**.
-    Boruların ~%24'ünde çıkar ve boşluğun ortasına değil bir kenarına yakın
+    Boruların ~%18'inde çıkar ve boşluğun ortasına değil bir kenarına yakın
     durur; karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı
-    görselden dar, sıyırmak toplamaz). Çarpan 8 saniye boyunca her boruyu o kadar
+    görselden dar, sıyırmak toplamaz). Çarpan 5 saniye boyunca her boruyu o kadar
     puan yapar (skor altında süre çubuğu). Bomba yalnız skor 2'ye tam bölünürken
     çıkar; boru üretildikten sonra skor tekleşmişse patlamaz ("PATLAMADI"),
     yani puan her zaman tam bölünür. Zorluk skora değil geçilen boru sayısına bağlı.
 
+- Denge: bonus turu ~20 saniyede ortalama **30-45 puan** getirir (normal oyunda
+  aynı sürede ~14). Çırpış puanı tur başına 15 ile sınırlı, hızlı basarak puan
+  kasılamaz; fırtınada biriken çarpanın tavanı ×25.
 - 8 karakterli seçim menüsü (6+ karakterde ızgara 3 sütuna geçer)
 - Karaktere özel sesler: `sfx` çırpma, `dsfx` ölüm sesi. Menüde ♪ rozetiyle
   işaretli. Karakteri seçince de sesi çalıyor (varsa ölüm sesi, yoksa çırpma

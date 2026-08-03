@@ -216,7 +216,7 @@
   let grabbed = 0;        // toplanan çarpan sayısı (test için)
   let mult = 1;           // aktif çarpan
   let multT = 0;          // çarpanın kalan süresi (sn)
-  const MULT_TIME = 8;
+  const MULT_TIME = 5;
   const puffs = [];
   const clouds = [];
   const hills = [];
@@ -234,7 +234,7 @@
 
   // Bonus turunu açan altın yıldız: her karakterde, çok nadir.
   const STAR = { t: "star", m: 1, w: 0, c: "#ffd54a", label: "★" };
-  const STAR_CHANCE = 0.045;          // boru başına ~1/22
+  const STAR_CHANCE = 0.02;           // boru başına ~1/50
 
   // ---------------------------------------------------------------- bonus turu
   const BONUS_TIME = 20;
@@ -244,6 +244,8 @@
   let bonusSpawn = 0;         // sonraki şekere kalan süre
   let bonusPhase = 0;         // dizilim için dalga fazı
   let bonusEndT = 0;          // bitiş yazısının ömrü
+  let tapPts = 0;             // bu turda çırpıştan kazanılan puan
+  const TAP_CAP = 15;
   const items = [];
 
   // Bonusta düşen şekerler: değer, yarıçap, renk
@@ -252,12 +254,13 @@
 
   // Bonusa özel çarpan küreleri. Büyükleri nadir; w = ağırlık.
   const BONUS_MULTS = [
-    { m: 2,  w: 48, c: "#7ef08a", r: 16 },
-    { m: 3,  w: 27, c: "#63d7ff", r: 16 },
-    { m: 10, w: 14, c: "#c08bff", r: 18 },
-    { m: 25, w: 8,  c: "#ffa14a", r: 20 },
-    { m: 50, w: 3,  c: "#ff4f7d", r: 22 }
+    { m: 2,  w: 56, c: "#7ef08a", r: 16 },
+    { m: 3,  w: 28, c: "#63d7ff", r: 16 },
+    { m: 10, w: 11, c: "#c08bff", r: 18 },
+    { m: 25, w: 4,  c: "#ffa14a", r: 20 },
+    { m: 50, w: 1,  c: "#ff4f7d", r: 22 }
   ];
+  const STACK_CAP = 25;      // fırtınada biriken çarpanın tavanı
   const BM_W = BONUS_MULTS.reduce((s, o) => s + o.w, 0);
 
   // Fırtına bonusunda (BUKLE) yukarıdan düşen yıldırımlar
@@ -266,7 +269,7 @@
   let bonusMode = "candy";     // "candy" (BAĞIMLI) | "storm" (BUKLE)
   let stack = [];              // fırtınada biriken çarpanlar
   let thrower = { x: 0, flash: 0 };   // yukarıdan yıldırım atan bulut
-  const stackSum = () => stack.reduce((s, v) => s + v, 0) || 1;
+  const stackSum = () => Math.min(STACK_CAP, stack.reduce((s, v) => s + v, 0)) || 1;
   function rollMult() {
     let r = Math.random() * BM_W;
     for (const o of BONUS_MULTS) { if (r < o.w) return o; r -= o.w; }
@@ -435,7 +438,7 @@
     if (!ch.candy && !ch.storm) return null;               // bonusu olmayan karakter
     if (Math.random() < STAR_CHANCE) return place(STAR);   // bonus bileti
     if (!ch.candy) return null;                            // boru çarpanları yalnız BAĞIMLI'da
-    if (Math.random() > 0.24) return null;
+    if (Math.random() > 0.18) return null;
 
     let r = Math.random() * PICK_W;
     let def = PICKS[0];
@@ -519,7 +522,10 @@
       bird.v = FLAP_V;
       sFlap();
       addPuff();
-      if (state === BONUS) {      // bonusta her basış düz 1 puan (çarpan uygulanmaz)
+      // Bonusta her basış 1 puan, ama tur başına en fazla TAP_CAP kadar:
+      // hızlı hızlı basarak puan kasmak mümkün olmasın.
+      if (state === BONUS && tapPts < TAP_CAP) {
+        tapPts++;
         score += 1;
         bonusScore += 1;
         scorePop = 1;
@@ -640,7 +646,7 @@
       bonusSpawn -= dt;
       if (bonusSpawn <= 0) {
         spawnItem();
-        bonusSpawn = rand(0.30, 0.5);
+        bonusSpawn = rand(0.42, 0.62);
       }
 
       if (thrower.flash > 0) thrower.flash = Math.max(0, thrower.flash - dt);
@@ -852,6 +858,7 @@
     thrower.flash = 0;
     bonusT = BONUS_TIME;
     bonusScore = 0;
+    tapPts = 0;
     bonusSpawn = 0.35;
     bonusPhase = rand(0, 6.28);
     mult = 1;
@@ -902,10 +909,10 @@
     const y = mid + Math.sin(bonusPhase) * ((WORLD_H - GROUND_H) * 0.26);
     bonusPhase += 0.36;
 
-    if (r < 0.08) {
+    if (r < 0.06) {
       const o = rollMult();
       items.push({ x: WORLD_W + 24, y, def: null, mo: o, mult: o.m, taken: false, t: 0 });
-    } else if (r < 0.2) {
+    } else if (r < 0.16) {
       items.push({ x: WORLD_W + 24, y, def: GOLDEN, taken: false, t: 0 });
     } else if (r < 0.45) {
       for (let i = 0; i < 3; i++) {
@@ -953,8 +960,8 @@
       }, extra));
     };
 
-    if (r < 0.09) make({ def: null, mo: rollMult() }, 0, 0);
-    else if (r < 0.22) make({ def: BOLT_G }, 0, 0);
+    if (r < 0.06) make({ def: null, mo: rollMult() }, 0, 0);
+    else if (r < 0.16) make({ def: BOLT_G }, 0, 0);
     else if (r < 0.45) { make({ def: BOLT }, -26, 0); make({ def: BOLT }, 0, 30); make({ def: BOLT }, 26, 60); }
     else make({ def: BOLT }, 0, 0);
   }
