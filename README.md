@@ -42,7 +42,9 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
   - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
     kendiliğinden kapanır, dokununca hemen geçilir. Diğer karakterler doğrudan
     oyuna girer, ana ekran seçim menüsüdür.
-  - Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5** ve nadiren **bomba**.
+  - Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5**, arada bir mevcut
+    çarpanı ikiye **katlayan** pembe çift halkalı küre (×2 → ×4 → ×8, tavan ×25)
+    ve nadiren **bomba**.
     Boruların ~%18'inde çıkar ve boşluğun ortasına değil bir kenarına yakın
     durur; karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı
     görselden dar, sıyırmak toplamaz). Çarpan 5 saniye boyunca her boruyu o kadar
@@ -54,6 +56,8 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
   aynı sürede ~14). Çırpış puanı tur başına 15 ile sınırlı, hızlı basarak puan
   kasılamaz; fırtınada biriken çarpanın tavanı ×25.
 - 8 karakterli seçim menüsü (6+ karakterde ızgara 3 sütuna geçer)
+- Giriş/bonus sesi başka seslerle kesilmez, sonuna kadar çalar; çırpma ve ölüm
+  sesleri yalnız kendi türünü keser.
 - Karaktere özel sesler: `sfx` çırpma, `dsfx` ölüm sesi. Menüde ♪ rozetiyle
   işaretli. Karakteri seçince de sesi çalıyor (varsa ölüm sesi, yoksa çırpma
   sesi); sesi olmayan karakterlerde klasik bip devrede. Sesler açılışta

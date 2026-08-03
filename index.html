@@ -224,11 +224,14 @@
 
   // Boruların arasına düşen çarpanlar. Ağırlık: ne kadar sık çıkacağı.
   const PICKS = [
-    { t: "x2",   m: 2,   w: 56, c: "#7ef08a", label: "×2" },
-    { t: "x3",   m: 3,   w: 27, c: "#63d7ff", label: "×3" },
-    { t: "x5",   m: 5,   w: 12, c: "#ffdc63", label: "×5" },
+    { t: "x2",   m: 2,   w: 49, c: "#7ef08a", label: "×2" },
+    { t: "x3",   m: 3,   w: 25, c: "#63d7ff", label: "×3" },
+    { t: "x5",   m: 5,   w: 11, c: "#ffdc63", label: "×5" },
+    // katlayan: mevcut çarpanı ikiye katlar, süreyi tazeler
+    { t: "kat",  m: 2,   w: 10, c: "#ff9ae0", label: "×2" },
     { t: "bomb", m: 0.5, w: 5,  c: "#ff6b6b", label: "" }
   ];
+  const MULT_CAP = 25;        // çarpan tavanı (katlaya katlaya şişmesin)
   const PICK_W = PICKS.reduce((s, p) => s + p.w, 0);
   const PICK_R = 13;
 
@@ -301,7 +304,8 @@
   // Karakterine ses eklenmişse çırpma sesi onun kaydı olur.
   // kind: "sfx" = çırpma sesi, "dsfx" = ölüm sesi
   const sfxBuf = {};        // "kind:index" -> AudioBuffer | null (yükleniyor) | undefined (denenmedi)
-  let sfxNode = null;
+  let sfxNode = null;       // karakter sesleri (yenisi geleni keser)
+  let introNode = null;     // giriş/bonus sesi (kesilmez)
 
   function loadBuf(key, src) {
     const a = audio();
@@ -317,19 +321,21 @@
   function loadSfx(i, kind) { loadBuf(kind + ":" + i, CHARS[i] && CHARS[i][kind]); }
   function loadAllSfx(i) { loadSfx(i, "sfx"); loadSfx(i, "dsfx"); }
 
-  function playBuf(key, src) {
+  // keep=true olanlar (giriş/bonus sesi) başka seslerle kesilmez, sonuna kadar çalar.
+  function playBuf(key, src, keep) {
     const a = audio();
     if (!a || !src) return false;
     if (sfxBuf[key] === undefined) { loadBuf(key, src); return false; }
     if (!sfxBuf[key]) return false;
-    if (sfxNode) { try { sfxNode.stop(); } catch (e) {} }   // üst üste binmesin, baştan çalsın
+    const prev = keep ? introNode : sfxNode;
+    if (prev) { try { prev.stop(); } catch (e) {} }   // yalnız kendi türünü kesip baştan başlar
     const n = a.createBufferSource();
     n.buffer = sfxBuf[key];
     const g = a.createGain();
     g.gain.value = 0.9;
     n.connect(g); g.connect(a.destination);
     n.start();
-    sfxNode = n;
+    if (keep) introNode = n; else sfxNode = n;
     return true;
   }
 
@@ -337,7 +343,7 @@
     return CHARS[i] ? playBuf(kind + ":" + i, CHARS[i][kind]) : false;
   }
 
-  const playIntro = () => playBuf("intro", INTRO_SFX);
+  const playIntro = () => playBuf("intro", INTRO_SFX, true);
 
   function beep(freq, dur, type, vol, slideTo) {
     try {
@@ -477,6 +483,7 @@
 
   function stopSfx() {
     if (sfxNode) { try { sfxNode.stop(); } catch (e) {} sfxNode = null; }
+    if (introNode) { try { introNode.stop(); } catch (e) {} introNode = null; }
   }
 
   function reset() {
@@ -771,10 +778,14 @@
       return;
     }
 
+    const isKat = k.def.t === "kat";
     if (isBomb) {
       score = score / 2;               // skor çift, bölme tam
       mult = 1;
       multT = 0;
+    } else if (isKat) {
+      mult = Math.min(MULT_CAP, mult * k.def.m);   // üstüne katlanır
+      multT = MULT_TIME;
     } else {
       mult = k.def.m;                  // çarpan süreyle işler: her boru bu kadar puan
       multT = MULT_TIME;
@@ -784,8 +795,8 @@
     pops.push({
       // yazı ekran kenarına taşmasın
       x: clamp(BIRD_X(), WORLD_W * 0.35, WORLD_W * 0.65), y: bird.y - BIRD_R - 6, t: 0,
-      text: isBomb ? "BOMBA! ÷2" : k.def.label,
-      sub: isBomb ? before + " → " + score : "BORU BAŞINA " + k.def.m + " PUAN",
+      text: isBomb ? "BOMBA! ÷2" : isKat ? "KATLANDI" : k.def.label,
+      sub: isBomb ? before + " → " + score : "BORU BAŞINA " + mult + " PUAN",
       c: k.def.c
     });
 
@@ -801,6 +812,11 @@
       shake = 1;
       flashA = 0.55;
       beep(150, 0.28, "sawtooth", 0.09, 50);
+    } else if (isKat) {
+      shake = 0.5;
+      beep(560, 0.08, "square", 0.06, 840);
+      setTimeout(() => beep(840, 0.09, "square", 0.055, 1260), 70);
+      setTimeout(() => beep(1260, 0.12, "square", 0.05, 1680), 145);
     } else {
       shake = 0.35;
       beep(660, 0.08, "square", 0.06, 990);
@@ -1233,6 +1249,12 @@
         ctx.beginPath(); ctx.arc(0, 0, PICK_R, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = k.def.c; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(0, 0, PICK_R, 0, Math.PI * 2); ctx.stroke();
+        if (k.def.t === "kat") {                 // katlayan: dış halka + parlama
+          ctx.globalAlpha = 0.55 + Math.sin(k.t * 6) * 0.25;
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(0, 0, PICK_R + 5, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
         pixelText(k.def.label, 0, 1, 16, k.def.c);
       }
       ctx.restore();
