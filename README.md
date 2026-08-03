@@ -30,7 +30,7 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
   yağmuru başlar. Borular kaybolur, gökyüzü
   şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Her çırpış +1 puan
   (çarpandan bağımsız, düz 1), şeker +1, altın şeker +5. Yalnız bonusta çıkan
-  çarpan küreleri 5 saniyeliğine şeker başına puanı çarpar: ×2 (%56), ×3 (%28),
+  çarpan küreleri şeker başına puanı çarpar (bunlar da birikir): ×2 (%56), ×3 (%28),
   ×10 (%11), ×25 (%4), ×50 (%1) — büyükler parlayarak belli olur. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
   hız ilk hâline döner.
 - **BUKLE'ye özel — fırtına bonusu**: aynı altın boru/yıldız sistemiyle açılır.
@@ -47,8 +47,10 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
     ve nadiren **bomba**.
     Boruların ~%18'inde çıkar ve boşluğun ortasına değil bir kenarına yakın
     durur; karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı
-    görselden dar, sıyırmak toplamaz). Çarpan 5 saniye boyunca her boruyu o kadar
-    puan yapar (skor altında süre çubuğu). Bomba yalnız skor 2'ye tam bölünürken
+    görselden dar, sıyırmak toplamaz). Çarpan her boruyu o kadar
+    puan yapar. Çarpanlar **birikir**: süreyle sönmez, üstüne toplanır (×2 + ×3 =
+    ×5, tavan ×25) ve yalnız yeni oyun başlayınca ya da bombaya çarpınca sıfırlanır.
+    Bonusa girip çıkarken de korunur. Bomba yalnız skor 2'ye tam bölünürken
     çıkar; boru üretildikten sonra skor tekleşmişse patlamaz ("PATLAMADI"),
     yani puan her zaman tam bölünür. Zorluk skora değil geçilen boru sayısına bağlı.
 

@@ -498,6 +498,7 @@
     passed = 0;
     grabbed = 0;
     mult = 1;
+    stack = [];
     multT = 0;
     bonusT = 0;
     bonusEndT = 0;
@@ -781,15 +782,15 @@
     const isKat = k.def.t === "kat";
     if (isBomb) {
       score = score / 2;               // skor çift, bölme tam
-      mult = 1;
-      multT = 0;
+      mult = 1;                        // birikmiş çarpanı da söndürür
+      stack = [];
     } else if (isKat) {
       mult = Math.min(MULT_CAP, mult * k.def.m);   // üstüne katlanır
-      multT = MULT_TIME;
     } else {
-      mult = k.def.m;                  // çarpan süreyle işler: her boru bu kadar puan
-      multT = MULT_TIME;
+      // Çarpanlar birikir: süreyle sönmez, yeni oyunda sıfırlanır.
+      mult = mult === 1 ? k.def.m : Math.min(MULT_CAP, mult + k.def.m);
     }
+    multT = 0;
     scorePop = 1;
 
     pops.push({
@@ -828,14 +829,9 @@
     if (!it.def) {                       // çarpan
       if (!it.mult && it.mo) it.mult = it.mo.m;
       const c = it.mo ? it.mo.c : "#7ef08a";
-      if (bonusMode === "storm") {
-        stack.push(it.mult);              // fırtınada üst üste birikir
-        mult = stackSum();
-        multT = 0;                        // süre yok, tur boyunca durur
-      } else {
-        mult = it.mult;
-        multT = MULT_TIME;
-      }
+      stack.push(it.mult);                // her iki modda da üst üste birikir
+      mult = stackSum();
+      multT = 0;
       const birim = bonusMode === "storm" ? "YILDIRIM" : "ŞEKER";
       pops.push({ x: BIRD_X(), y: Math.max(bird.y - BIRD_R - 6, 185), t: 0,
                   text: "×" + it.mult,
@@ -869,7 +865,7 @@
   function startBonus() {
     state = BONUS;
     bonusMode = CHARS[sel].storm ? "storm" : "candy";
-    stack = [];
+    stack = mult > 1 ? [mult] : [];      // birikmiş çarpan bonusa taşınır
     thrower.x = WORLD_W / 2;
     thrower.flash = 0;
     bonusT = BONUS_TIME;
@@ -877,7 +873,7 @@
     tapPts = 0;
     bonusSpawn = 0.35;
     bonusPhase = rand(0, 6.28);
-    mult = 1;
+    mult = stackSum();
     multT = 0;
     items.length = 0;
     flashA = 1;
@@ -899,9 +895,8 @@
   function endBonus() {
     state = PLAY;
     bonusEndT = 1.6;
-    mult = 1;
+    mult = stackSum();     // birikim oyuna taşınır, yalnız yeni oyunda sıfırlanır
     multT = 0;
-    stack = [];
     items.length = 0;
     flashA = 0.7;
     passed = 0;                 // zorluk sayacı sıfır: hız ilk hâline döner
@@ -1536,18 +1531,13 @@
       if (bonusEndT > 0) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, bonusEndT);
-        pixelText("BONUS BİTTİ", WORLD_W / 2, 150, 18, "#ffd54a", "#2b2118");
+        pixelText("BONUS BİTTİ", WORLD_W / 2, 158, 18, "#ffd54a", "#2b2118");
         ctx.restore();
       }
 
-      if (multT > 0) {
-        const c = mult >= 5 ? "#ffdc63" : mult >= 3 ? "#63d7ff" : "#7ef08a";
-        const bw = 96, bx = WORLD_W / 2 - bw / 2, by = 142;
-        pixelText("×" + mult, WORLD_W / 2, by - 12, 22, c, "#2b2118");
-        ctx.fillStyle = "rgba(33,29,23,0.75)";
-        roundRect(bx, by, bw, 7, 3.5); ctx.fill();
-        ctx.fillStyle = c;
-        roundRect(bx, by, bw * (multT / MULT_TIME), 7, 3.5); ctx.fill();
+      if (mult > 1) {          // birikmiş çarpan: süresi yok, ölene kadar durur
+        const c = mult >= 10 ? "#ff9ae0" : mult >= 5 ? "#ffdc63" : mult >= 3 ? "#63d7ff" : "#7ef08a";
+        pixelText("×" + mult, WORLD_W / 2, 138, mult >= 10 ? 26 : 22, c, "#2b2118");
       }
     }
 
@@ -1788,6 +1778,7 @@
     get bird() { return { x: BIRD_X(), y: bird.y, v: bird.v, r: BIRD_R }; },
     get pipes() { return pipes.map(p => ({ x: p.x, top: p.top, passed: p.passed })); },
     get grabbed() { return grabbed; },
+    get mult() { return mult; },
     get bonusT() { return bonusT; },
     get bonusScore() { return bonusScore; },
     get items() { return items.map(i => ({ x: i.x, y: i.y, mult: i.mult || 0, v: i.def ? i.def.v : 0 })); },
