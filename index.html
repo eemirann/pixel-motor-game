@@ -178,7 +178,7 @@
   const MAX_SPEED = 232;
 
   // ---------------------------------------------------------------- state
-  const READY = 0, PLAY = 1, DYING = 2, OVER = 3, SELECT = 4;
+  const READY = 0, PLAY = 1, DYING = 2, OVER = 3, SELECT = 4, BONUS = 5;
   let state = SELECT;
   let paused = false;
   let sel = 0;              // seçili karakter
@@ -231,6 +231,24 @@
   ];
   const PICK_W = PICKS.reduce((s, p) => s + p.w, 0);
   const PICK_R = 13;
+
+  // Bonus turunu açan altın yıldız: her karakterde, çok nadir.
+  const STAR = { t: "star", m: 1, w: 0, c: "#ffd54a", label: "★" };
+  const STAR_CHANCE = 0.045;          // boru başına ~1/22
+
+  // ---------------------------------------------------------------- bonus turu
+  const BONUS_TIME = 20;
+  const BONUS_SPEED = 205;
+  let bonusT = 0;             // kalan süre
+  let bonusScore = 0;         // turda toplanan puan
+  let bonusSpawn = 0;         // sonraki şekere kalan süre
+  let bonusPhase = 0;         // dizilim için dalga fazı
+  let bonusEndT = 0;          // bitiş yazısının ömrü
+  const items = [];
+
+  // Bonusta düşen şekerler: değer, yarıçap, renk
+  const CANDY  = { v: 1, r: 13, c: "#ff6fae" };
+  const GOLDEN = { v: 5, r: 15, c: "#ffd54a" };
 
   // ---------------------------------------------------------------- assets
   const faces = CHARS.map(c => {
@@ -383,14 +401,21 @@
   // İlk iki boru boş kalır ki oyuncu daha puan almadan çarpanla karşılaşmasın.
   let pipeNo = 0;
   function makePick(top) {
-    if (!CHARS[sel].candy) return null;        // çarpanlar yalnız BAĞIMLI'da
-    if (pipeNo++ < 2 || Math.random() > 0.24) return null;
+    if (pipeNo++ < 2) return null;
+    const near = PICK_R + 19;                       // boru ağzına olan uzaklık
+    const place = (def) => ({
+      def, taken: false, t: 0,
+      y: Math.random() < 0.5 ? top + near : top + PIPE_GAP - near
+    });
+
+    if (Math.random() < STAR_CHANCE) return place(STAR);   // bonus bileti
+    if (!CHARS[sel].candy) return null;                    // çarpanlar yalnız BAĞIMLI'da
+    if (Math.random() > 0.24) return null;
+
     let r = Math.random() * PICK_W;
     let def = PICKS[0];
     for (const p of PICKS) { if (r < p.w) { def = p; break; } r -= p.w; }
-    const near = PICK_R + 19;                       // boru ağzına olan uzaklık
-    const y = Math.random() < 0.5 ? top + near : top + PIPE_GAP - near;
-    return { def, y, taken: false, t: 0 };
+    return place(def);
   }
 
   function goSelect() {
@@ -437,6 +462,9 @@
     grabbed = 0;
     mult = 1;
     multT = 0;
+    bonusT = 0;
+    bonusEndT = 0;
+    items.length = 0;
     pops.length = 0;
     speed = BASE_SPEED;
     flashA = 0;
@@ -460,7 +488,7 @@
       bird.v = FLAP_V;
       sFlap();
       addPuff();
-    } else if (state === PLAY) {
+    } else if (state === PLAY || state === BONUS) {
       bird.v = FLAP_V;
       sFlap();
       addPuff();
@@ -506,10 +534,10 @@
   });
   document.addEventListener("gesturestart", (e) => e.preventDefault());
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && state === PLAY) paused = true;
+    if (document.hidden && (state === PLAY || state === BONUS)) paused = true;
     last = 0;
   });
-  window.addEventListener("blur", () => { if (state === PLAY) paused = true; });
+  window.addEventListener("blur", () => { if (state === PLAY || state === BONUS) paused = true; });
 
   // ---------------------------------------------------------------- update
   function update(dt) {
@@ -550,8 +578,60 @@
       return;
     }
 
+    if (state === BONUS) {
+      bonusT -= dt;
+      if (bonusEndT > 0) bonusEndT = Math.max(0, bonusEndT - dt);
+
+      // uçuş: normal fizik, ama ölüm yok — zemine değince seker
+      bird.v = Math.min(bird.v + GRAVITY * dt, MAX_FALL);
+      bird.y += bird.v * dt;
+      const target = clamp(bird.v / 520, -0.55, 1.35);
+      bird.rot += (target - bird.rot) * Math.min(1, dt * 9);
+      if (bird.y - BIRD_R < 0) { bird.y = BIRD_R; bird.v = 60; }
+      if (bird.y + BIRD_R > WORLD_H - GROUND_H) {
+        bird.y = WORLD_H - GROUND_H - BIRD_R;
+        bird.v = -330;
+      }
+
+      groundX = (groundX - BONUS_SPEED * dt) % 32;
+      for (const hl of hills) {
+        hl.x -= BONUS_SPEED * 0.18 * dt;
+        if (hl.x + hl.w < -20) hl.x += 8 * 110;
+      }
+
+      if (multT > 0) {
+        multT -= dt;
+        if (multT <= 0) { multT = 0; mult = 1; }
+      }
+
+      bonusSpawn -= dt;
+      if (bonusSpawn <= 0) {
+        spawnItem();
+        bonusSpawn = rand(0.30, 0.5);
+      }
+
+      const bx0 = BIRD_X();
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+        it.t += dt;
+        it.x -= BONUS_SPEED * dt;
+        if (it.x < -40) { items.splice(i, 1); continue; }
+        const rr = BIRD_R * 0.85 + (it.def ? it.def.r : 15);
+        const dx = it.x - bx0, dy = it.y - bird.y;
+        if (dx * dx + dy * dy < rr * rr) {
+          takeItem(it);
+          items.splice(i, 1);
+        }
+      }
+
+      ageEffects(dt);
+      if (bonusT <= 0) endBonus();
+      return;
+    }
+
     if (state === PLAY) {
       speed = Math.min(MAX_SPEED, BASE_SPEED + passed * 2.2);
+      if (bonusEndT > 0) bonusEndT = Math.max(0, bonusEndT - dt);
       if (multT > 0) {
         multT -= dt;
         if (multT <= 0) { multT = 0; mult = 1; }
@@ -621,27 +701,16 @@
       overT += dt;
     }
 
-    for (let i = pops.length - 1; i >= 0; i--) {
-      const q = pops[i];
-      q.t += dt;
-      q.y -= 34 * dt;
-      if (q.t >= 1.1) pops.splice(i, 1);
-    }
-
-    // puf parçacıkları
-    for (let i = puffs.length - 1; i >= 0; i--) {
-      const p = puffs[i];
-      p.t += dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      if (p.t >= p.life) puffs.splice(i, 1);
-    }
+    ageEffects(dt);
   }
 
   function grab(p) {
     const k = p.pick;
     k.taken = true;
     grabbed++;
+
+    if (k.def.t === "star") { startBonus(); return; }
+
     const isBomb = k.def.t === "bomb";
     const before = score;
     if (isBomb) {
@@ -678,6 +747,110 @@
       shake = 0.35;
       beep(660, 0.08, "square", 0.06, 990);
       setTimeout(() => beep(990, 0.10, "square", 0.05, 1480), 70);
+    }
+  }
+
+  function takeItem(it) {
+    if (!it.def) {                       // çarpan küresi
+      mult = it.mult;
+      multT = MULT_TIME;
+      pops.push({ x: BIRD_X(), y: Math.max(bird.y - BIRD_R - 6, 185), t: 0,
+                  text: "×" + it.mult, sub: "ŞEKER BAŞINA " + it.mult + " PUAN",
+                  c: it.mult >= 3 ? "#63d7ff" : "#7ef08a" });
+      beep(700, 0.08, "square", 0.06, 1050);
+      setTimeout(() => beep(1050, 0.10, "square", 0.05, 1500), 70);
+      return;
+    }
+    const add = it.def.v * mult;
+    score += add;
+    bonusScore += add;
+    scorePop = 1;
+    if (it.def === GOLDEN) {
+      pops.push({ x: BIRD_X(), y: Math.max(bird.y - BIRD_R - 6, 175), t: 0,
+                  text: "+" + add, sub: "", c: "#ffd54a" });
+      beep(990, 0.12, "square", 0.06, 1480);
+    } else {
+      beep(720 + Math.random() * 120, 0.06, "square", 0.045, 1080);
+    }
+    for (let i = 0; i < 6; i++) {
+      puffs.push({ x: it.x, y: it.y, r: rand(2, 4.5), vx: rand(-70, 20), vy: rand(-60, 60),
+                   life: rand(0.2, 0.4), t: 0, c: it.def.c });
+    }
+  }
+
+  function startBonus() {
+    state = BONUS;
+    bonusT = BONUS_TIME;
+    bonusScore = 0;
+    bonusSpawn = 0.35;
+    bonusPhase = rand(0, 6.28);
+    mult = 1;
+    multT = 0;
+    items.length = 0;
+    flashA = 1;
+    shake = 0.7;
+    pops.push({
+      x: WORLD_W / 2, y: WORLD_H * 0.52, t: 0,
+      text: "BONUS!", sub: BONUS_TIME + " SANİYE ŞEKER YAĞMURU", c: "#ffd54a"
+    });
+    // küçük fanfar
+    beep(660, 0.10, "square", 0.06, 880);
+    setTimeout(() => beep(880, 0.10, "square", 0.06, 1170), 110);
+    setTimeout(() => beep(1170, 0.18, "square", 0.06, 1570), 230);
+  }
+
+  function endBonus() {
+    state = PLAY;
+    bonusEndT = 1.6;
+    mult = 1;
+    multT = 0;
+    items.length = 0;
+    flashA = 0.7;
+    // Boruları kuşun önünde yeniden diz: bonustan çıkar çıkmaz boruya çarpmasın.
+    resetPipes();
+    pops.push({
+      x: WORLD_W / 2, y: WORLD_H * 0.52, t: 0,
+      text: "+" + bonusScore, sub: "BONUS BİTTİ", c: "#ffd54a"
+    });
+    beep(880, 0.12, "square", 0.06, 620);
+    setTimeout(() => beep(560, 0.2, "triangle", 0.06, 320), 130);
+  }
+
+  function spawnItem() {
+    // Dalga hâlinde diz: bazen tek şeker, bazen üçlü sıra.
+    const r = Math.random();
+    // Yumuşak dalga: ardışık şekerler zincir gibi izlenebilsin
+    const mid = (WORLD_H - GROUND_H) * 0.52;
+    const y = mid + Math.sin(bonusPhase) * ((WORLD_H - GROUND_H) * 0.26);
+    bonusPhase += 0.36;
+
+    if (r < 0.07) {
+      items.push({ x: WORLD_W + 24, y, def: null, mult: Math.random() < 0.35 ? 3 : 2, taken: false, t: 0 });
+    } else if (r < 0.2) {
+      items.push({ x: WORLD_W + 24, y, def: GOLDEN, taken: false, t: 0 });
+    } else if (r < 0.45) {
+      for (let i = 0; i < 3; i++) {
+        items.push({ x: WORLD_W + 24 + i * 32, y: y + i * 12, def: CANDY, taken: false, t: 0 });
+      }
+    } else {
+      items.push({ x: WORLD_W + 24, y, def: CANDY, taken: false, t: 0 });
+    }
+  }
+
+  // Uçuşan yazılar ve puf parçacıkları — her durumda işlemeli, yoksa ekranda kalır.
+  function ageEffects(dt) {
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const q = pops[i];
+      q.t += dt;
+      q.y -= 34 * dt;
+      if (q.t >= 1.1) pops.splice(i, 1);
+    }
+    for (let i = puffs.length - 1; i >= 0; i--) {
+      const p = puffs[i];
+      p.t += dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (p.t >= p.life) puffs.splice(i, 1);
     }
   }
 
@@ -733,8 +906,12 @@
 
     drawSky();
     drawHills();
-    drawPipes();
-    drawPicks();
+    if (state === BONUS) {
+      drawItems();
+    } else {
+      drawPipes();
+      drawPicks();
+    }
     drawGround();
     drawPuffs();
     if (state !== SELECT) drawBird();
@@ -751,9 +928,15 @@
 
   function drawSky() {
     const g = ctx.createLinearGradient(0, 0, 0, WORLD_H - GROUND_H);
-    g.addColorStop(0, "#3aa8bd");
-    g.addColorStop(0.55, "#4ec0ca");
-    g.addColorStop(1, "#9fe0d8");
+    if (state === BONUS) {
+      g.addColorStop(0, "#6a2170");
+      g.addColorStop(0.55, "#b23a86");
+      g.addColorStop(1, "#ff9ec4");
+    } else {
+      g.addColorStop(0, "#3aa8bd");
+      g.addColorStop(0.55, "#4ec0ca");
+      g.addColorStop(1, "#9fe0d8");
+    }
     ctx.fillStyle = g;
     ctx.fillRect(-40, -40, WORLD_W + 80, WORLD_H + 80);
 
@@ -880,7 +1063,22 @@
       ctx.translate(x, k.y + bob);
       ctx.scale(pulse, pulse);
 
-      if (k.def.t === "bomb") {
+      if (k.def.t === "star") {
+        const rot = k.t * 1.6;
+        ctx.rotate(Math.sin(rot) * 0.25);
+        ctx.fillStyle = "rgba(255,213,74,0.25)";
+        ctx.beginPath(); ctx.arc(0, 0, PICK_R + 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffd54a";
+        ctx.strokeStyle = "#7a5a10";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+          const a = -Math.PI / 2 + i * Math.PI / 5;
+          const rr = i % 2 ? PICK_R * 0.45 : PICK_R + 3;
+          ctx[i ? "lineTo" : "moveTo"](Math.cos(a) * rr, Math.sin(a) * rr);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (k.def.t === "bomb") {
         ctx.fillStyle = "rgba(0,0,0,0.25)";
         ctx.beginPath(); ctx.arc(2, 3, PICK_R + 1, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#2b2b33";
@@ -909,6 +1107,49 @@
         ctx.strokeStyle = k.def.c; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(0, 0, PICK_R, 0, Math.PI * 2); ctx.stroke();
         pixelText(k.def.label, 0, 1, 16, k.def.c);
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawItems() {
+    for (const it of items) {
+      ctx.save();
+      ctx.translate(it.x, it.y + Math.sin(it.t * 4) * 3);
+
+      if (!it.def) {                                  // çarpan küresi
+        const c = it.mult >= 3 ? "#63d7ff" : "#7ef08a";
+        const s = 1 + Math.sin(it.t * 7) * 0.06;
+        ctx.scale(s, s);
+        ctx.fillStyle = "rgba(0,0,0,0.22)";
+        ctx.beginPath(); ctx.arc(2, 3, 17, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#211d17";
+        ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = c; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.stroke();
+        pixelText("×" + it.mult, 0, 1, 17, c);
+      } else {
+        const r = it.def.r;
+        ctx.rotate(it.t * 2.2);
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.beginPath(); ctx.arc(2, 3, r + 1, 0, Math.PI * 2); ctx.fill();
+        // şeker: iki renkli sarmal
+        ctx.fillStyle = it.def === GOLDEN ? "#ffe9a8" : "#ffd7ea";
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = it.def.c;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, -0.5, 1.1);
+        ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, Math.PI - 0.5, Math.PI + 1.1);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = "#2b2118"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+        // çubuk
+        ctx.strokeStyle = "#e7e2d4"; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.moveTo(r - 1, 0); ctx.lineTo(r + 8, 0); ctx.stroke();
       }
       ctx.restore();
     }
@@ -1024,6 +1265,29 @@
 
     if (state === SELECT) { drawSelect(); return; }
 
+    if (state === BONUS) {
+      const s = 1 + scorePop * 0.35;
+      ctx.save();
+      ctx.translate(WORLD_W / 2, 88);
+      ctx.scale(s, s);
+      pixelText(String(score), 0, 0, 50, "#ffffff", "#2b2118");
+      ctx.restore();
+
+      const left = Math.max(0, bonusT);
+      const bw = Math.min(WORLD_W - 60, 220), bx = WORLD_W / 2 - bw / 2, by = 126;
+      pixelText("BONUS  " + left.toFixed(1) + " sn", WORLD_W / 2, by - 14, 15, "#ffd54a", "#2b2118");
+      ctx.fillStyle = "rgba(33,29,23,0.75)";
+      roundRect(bx, by, bw, 9, 4.5); ctx.fill();
+      ctx.fillStyle = left < 5 ? "#ff8f6b" : "#ffd54a";
+      roundRect(bx, by, bw * (left / BONUS_TIME), 9, 4.5); ctx.fill();
+
+      if (multT > 0) {
+        const c = mult >= 3 ? "#63d7ff" : "#7ef08a";
+        pixelText("×" + mult, WORLD_W / 2, by + 32, 22, c, "#2b2118");
+      }
+      return;
+    }
+
     if (state === PLAY || state === DYING) {
       const s = 1 + scorePop * 0.35;
       ctx.save();
@@ -1031,6 +1295,13 @@
       ctx.scale(s, s);
       pixelText(String(score), 0, 0, 54, "#ffffff", "#2b2118");
       ctx.restore();
+
+      if (bonusEndT > 0) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, bonusEndT);
+        pixelText("BONUS BİTTİ", WORLD_W / 2, 150, 18, "#ffd54a", "#2b2118");
+        ctx.restore();
+      }
 
       if (multT > 0) {
         const c = mult >= 5 ? "#ffdc63" : mult >= 3 ? "#63d7ff" : "#7ef08a";
@@ -1280,6 +1551,10 @@
     get bird() { return { x: BIRD_X(), y: bird.y, v: bird.v, r: BIRD_R }; },
     get pipes() { return pipes.map(p => ({ x: p.x, top: p.top, passed: p.passed })); },
     get grabbed() { return grabbed; },
+    get bonusT() { return bonusT; },
+    get bonusScore() { return bonusScore; },
+    get items() { return items.map(i => ({ x: i.x, y: i.y, mult: i.mult || 0, v: i.def ? i.def.v : 0 })); },
+    startBonus,
     get picks() {
       return pipes.filter(p => p.pick && !p.pick.taken)
                   .map(p => ({ x: p.x + PIPE_W / 2, y: p.pick.y, t: p.pick.def.t }));
