@@ -408,8 +408,8 @@
       y: Math.random() < 0.5 ? top + near : top + PIPE_GAP - near
     });
 
+    if (!CHARS[sel].candy) return null;                    // çarpan/bonus yalnız BAĞIMLI'da
     if (Math.random() < STAR_CHANCE) return place(STAR);   // bonus bileti
-    if (!CHARS[sel].candy) return null;                    // çarpanlar yalnız BAĞIMLI'da
     if (Math.random() > 0.24) return null;
 
     let r = Math.random() * PICK_W;
@@ -492,6 +492,11 @@
       bird.v = FLAP_V;
       sFlap();
       addPuff();
+      if (state === BONUS) {          // bonusta her basış 1 puan
+        score++;
+        bonusScore++;
+        scorePop = 1;
+      }
     } else if (state === OVER && overT > 0.55) {
       reset();
     }
@@ -806,6 +811,8 @@
     multT = 0;
     items.length = 0;
     flashA = 0.7;
+    passed = 0;                 // zorluk sayacı sıfır: hız ilk hâline döner
+    speed = BASE_SPEED;
     // Boruları kuşun önünde yeniden diz: bonustan çıkar çıkmaz boruya çarpmasın.
     resetPipes();
     pops.push({
@@ -978,27 +985,36 @@
     ctx.fillRect(0, baseY - 6, WORLD_W, 6);
   }
 
+  // Normal borular yeşil; bonusu açan yıldızı taşıyan boru altın sarısı.
+  const PIPE_SKIN = {
+    green: { body: ["#4a9b1f", "#8ed44f", "#63bf2b", "#38771a"],
+             cap:  ["#4a9b1f", "#9ade5c", "#63bf2b", "#356f18"], line: "#2c5c14" },
+    gold:  { body: ["#a8760c", "#ffe07a", "#f0b428", "#8a5c07"],
+             cap:  ["#a8760c", "#fff0b0", "#f5c33c", "#7d5206"], line: "#5c3d05" }
+  };
+
   function drawPipes() {
     const bottomY = WORLD_H - GROUND_H;
     for (const p of pipes) {
       if (p.x > WORLD_W + 10 || p.x + PIPE_W < -10) continue;
-      pipeBody(p.x, 0, PIPE_W, p.top, true);
+      const skin = (p.pick && p.pick.def.t === "star") ? PIPE_SKIN.gold : PIPE_SKIN.green;
+      pipeBody(p.x, 0, PIPE_W, p.top, true, skin);
       const y2 = p.top + PIPE_GAP;
-      pipeBody(p.x, y2, PIPE_W, bottomY - y2, false);
+      pipeBody(p.x, y2, PIPE_W, bottomY - y2, false, skin);
     }
   }
 
-  function pipeBody(x, y, w, h, isTop) {
+  function pipeBody(x, y, w, h, isTop, skin) {
     if (h <= 0) return;
     const g = ctx.createLinearGradient(x, 0, x + w, 0);
-    g.addColorStop(0, "#4a9b1f");
-    g.addColorStop(0.22, "#8ed44f");
-    g.addColorStop(0.55, "#63bf2b");
-    g.addColorStop(1, "#38771a");
+    g.addColorStop(0, skin.body[0]);
+    g.addColorStop(0.22, skin.body[1]);
+    g.addColorStop(0.55, skin.body[2]);
+    g.addColorStop(1, skin.body[3]);
     ctx.fillStyle = g;
     ctx.fillRect(x, y, w, h);
 
-    ctx.strokeStyle = "#2c5c14";
+    ctx.strokeStyle = skin.line;
     ctx.lineWidth = 2;
     ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
 
@@ -1006,13 +1022,13 @@
     const capH = 26, capW = w + 12;
     const capY = isTop ? y + h - capH : y;
     const cg = ctx.createLinearGradient(x - 6, 0, x - 6 + capW, 0);
-    cg.addColorStop(0, "#4a9b1f");
-    cg.addColorStop(0.2, "#9ade5c");
-    cg.addColorStop(0.6, "#63bf2b");
-    cg.addColorStop(1, "#356f18");
+    cg.addColorStop(0, skin.cap[0]);
+    cg.addColorStop(0.2, skin.cap[1]);
+    cg.addColorStop(0.6, skin.cap[2]);
+    cg.addColorStop(1, skin.cap[3]);
     ctx.fillStyle = cg;
     ctx.fillRect(x - 6, capY, capW, capH);
-    ctx.strokeStyle = "#2c5c14";
+    ctx.strokeStyle = skin.line;
     ctx.strokeRect(x - 5, capY + 1, capW - 2, capH - 2);
   }
 

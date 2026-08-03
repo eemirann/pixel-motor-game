@@ -25,11 +25,12 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 
 ### Özellikler
 
-- **Bonus turu** (her karakterde): boruların ~%4.5'inde çıkan altın yıldızı
-  toplayınca 20 saniyelik şeker yağmuru başlar. Borular kaybolur, gökyüzü
-  şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Şeker +1,
-  altın şeker +5, ×2/×3 küreleri 8 saniyeliğine şeker başına puanı çarpar.
-  Süre bitince borular kuşun önünde yeniden dizilir, skor korunur.
+- **Bonus turu** (BAĞIMLI'ya özel): yıldız taşıyan boru **altın sarısı** görünür,
+  yıldızı toplayınca 20 saniyelik şeker yağmuru başlar. Borular kaybolur, gökyüzü
+  şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Her çırpış +1 puan,
+  şeker +1, altın şeker +5, ×2/×3 küreleri 8 saniyeliğine şeker başına puanı
+  çarpar. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
+  hız ilk hâline döner.
 - **BAĞIMLI'ya özel** (karakterdeki `candy: true` bayrağı):
   - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
     kendiliğinden kapanır, dokununca hemen geçilir. Diğer karakterler doğrudan
