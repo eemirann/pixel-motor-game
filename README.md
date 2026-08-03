@@ -25,14 +25,16 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 
 ### Özellikler
 
-- Açılışta dönen şeker animasyonu (WebP, saydam) ve giriş sesi; dokununca
-  kayboluyor. Ses ilk dokunuşta çalıyor — mobil tarayıcılar öncesinde izin vermiyor.
-- Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5** ve nadiren **bomba**.
-  Boruların ~%24'ünde çıkar ve boşluğun ortasına değil bir kenarına yakın durur;
-  karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı görselden dar,
-  sıyırmak toplamaz). Çarpan 8 saniye boyunca her boruyu o kadar puan yapar
-  (skor altında süre çubuğu), bomba puanı yarıya böler ve çarpanı söndürür.
-  Zorluk skora değil geçilen boru sayısına bağlı, çarpanlar oyunu hızlandırmıyor.
+- **BAĞIMLI'ya özel** (karakterdeki `candy: true` bayrağı):
+  - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
+    kendiliğinden kapanır, dokununca hemen geçilir. Diğer karakterler doğrudan
+    oyuna girer, ana ekran seçim menüsüdür.
+  - Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5** ve nadiren **bomba**.
+    Boruların ~%24'ünde çıkar ve boşluğun ortasına değil bir kenarına yakın
+    durur; karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı
+    görselden dar, sıyırmak toplamaz). Çarpan 8 saniye boyunca her boruyu o kadar
+    puan yapar (skor altında süre çubuğu), bomba puanı yarıya böler ve çarpanı
+    söndürür. Zorluk skora değil geçilen boru sayısına bağlı.
 
 - 8 karakterli seçim menüsü (6+ karakterde ızgara 3 sütuna geçer)
 - Karaktere özel sesler: `sfx` çırpma, `dsfx` ölüm sesi. Menüde ♪ rozetiyle
