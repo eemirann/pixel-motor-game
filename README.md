@@ -25,7 +25,14 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 
 ### Özellikler
 
-- 5 karakterli seçim menüsü; her karakterin kendi rekoru
+- Açılışta dönen şeker animasyonu (WebP, saydam) ve giriş sesi; dokununca
+  kayboluyor. Ses ilk dokunuşta çalıyor — mobil tarayıcılar öncesinde izin vermiyor.
+- Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5** ve nadiren **bomba**.
+  Çarpan 8 saniye boyunca her boruyu o kadar puan yapar (skor çubuğu ekranda),
+  bomba ise puanı yarıya böler ve aktif çarpanı söndürür. Zorluk skora değil
+  geçilen boru sayısına bağlı, böylece çarpanlar oyunu hızlandırmıyor.
+
+- 8 karakterli seçim menüsü (6+ karakterde ızgara 3 sütuna geçer)
 - Karaktere özel sesler: `sfx` çırpma, `dsfx` ölüm sesi. Menüde ♪ rozetiyle
   işaretli. Karakteri seçince de sesi çalıyor (varsa ölüm sesi, yoksa çırpma
   sesi); sesi olmayan karakterlerde klasik bip devrede. Sesler açılışta
