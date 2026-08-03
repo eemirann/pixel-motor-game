@@ -33,6 +33,11 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
   çarpan küreleri 8 saniyeliğine şeker başına puanı çarpar: ×2 (%48), ×3 (%27),
   ×10 (%14), ×25 (%8), ×50 (%3) — büyükler parlayarak belli olur. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
   hız ilk hâline döner.
+- **BUKLE'ye özel — fırtına bonusu**: aynı altın boru/yıldız sistemiyle açılır.
+  Gökyüzü maviye döner, tepedeki bulut aşağı **yıldırım** savurur (hepsi kuşun
+  sütununa doğru gelir, yoksa toplanamazdı). Yıldırım +1, altın yıldırım +5,
+  çırpış +1. Çarpanlar burada **birikir**: aldıkça toplanır (×2 + ×10 = ×12),
+  tur boyunca durur ve kuşun üstünde rozet olarak dizilir; toplam HUD'da yazar.
 - **BAĞIMLI'ya özel** (karakterdeki `candy: true` bayrağı):
   - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
     kendiliğinden kapanır, dokununca hemen geçilir. Diğer karakterler doğrudan
