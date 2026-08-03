@@ -28,9 +28,10 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
 - **Bonus turu** (BAĞIMLI'ya özel): yıldız taşıyan boru **altın sarısı** görünür,
   yıldızı toplayınca şeker ekranındaki giriş sesi çalar ve 20 saniyelik şeker
   yağmuru başlar. Borular kaybolur, gökyüzü
-  şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Her çırpış +1 puan,
-  şeker +1, altın şeker +5, ×2/×3 küreleri 8 saniyeliğine şeker başına puanı
-  çarpar. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
+  şeker moduna geçer, ölüm yoktur (zemine değince sekersin). Her çırpış +1 puan
+  (çarpandan bağımsız, düz 1), şeker +1, altın şeker +5. Yalnız bonusta çıkan
+  çarpan küreleri 8 saniyeliğine şeker başına puanı çarpar: ×2 (%48), ×3 (%27),
+  ×10 (%14), ×25 (%8), ×50 (%3) — büyükler parlayarak belli olur. Süre bitince borular kuşun önünde yeniden dizilir, skor korunur ve
   hız ilk hâline döner.
 - **BAĞIMLI'ya özel** (karakterdeki `candy: true` bayrağı):
   - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
@@ -40,8 +41,9 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
     Boruların ~%24'ünde çıkar ve boşluğun ortasına değil bir kenarına yakın
     durur; karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı
     görselden dar, sıyırmak toplamaz). Çarpan 8 saniye boyunca her boruyu o kadar
-    puan yapar (skor altında süre çubuğu), bomba puanı yarıya böler ve çarpanı
-    söndürür. Zorluk skora değil geçilen boru sayısına bağlı.
+    puan yapar (skor altında süre çubuğu). Bomba yalnız skor 2'ye tam bölünürken
+    çıkar; boru üretildikten sonra skor tekleşmişse patlamaz ("PATLAMADI"),
+    yani puan her zaman tam bölünür. Zorluk skora değil geçilen boru sayısına bağlı.
 
 - 8 karakterli seçim menüsü (6+ karakterde ızgara 3 sütuna geçer)
 - Karaktere özel sesler: `sfx` çırpma, `dsfx` ölüm sesi. Menüde ♪ rozetiyle
