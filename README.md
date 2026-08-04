@@ -37,20 +37,20 @@ Telefonda "Ana Ekrana Ekle" dersen tam ekran uygulama gibi açılır.
   Gökyüzü maviye döner, tepedeki bulut aşağı **yıldırım** savurur (hepsi kuşun
   sütununa doğru gelir, yoksa toplanamazdı). Yıldırım +1, altın yıldırım +5,
   çırpış +1. Çarpanlar burada **birikir**: aldıkça toplanır (×2 + ×10 = ×12,
-  tavan ×25), tur boyunca durur ve kuşun üstünde rozet olarak dizilir; toplam HUD'da yazar.
+  tavan ×100), tur boyunca durur ve kuşun üstünde rozet olarak dizilir; toplam HUD'da yazar.
 - **BAĞIMLI'ya özel** (karakterdeki `candy: true` bayrağı):
   - Seçilince dönen şeker animasyonu (saydam WebP) + giriş sesi; 2.6 sn sonra
     kendiliğinden kapanır, dokununca hemen geçilir. Diğer karakterler doğrudan
     oyuna girer, ana ekran seçim menüsüdür.
-  - Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5**, arada bir mevcut
-    çarpanı ikiye **katlayan** pembe çift halkalı küre (×2 → ×4 → ×8, tavan ×25)
-    ve nadiren **bomba**.
+  - Boru boşluklarında rastgele çarpanlar: **×2 / ×3 / ×5 / ×10**, arada bir
+    mevcut çarpanı ikiye **katlayan** pembe çift halkalı küre ve nadiren **bomba**.
+    Bu çarpanlar BUKLE'de de çıkar; **BAĞIMLI'da toplanarak** (×2 + ×3 = ×5),
+    **BUKLE'de çarpılarak** (×2 sonra ×3 = ×6) birikir. Tavan ×50.
     Boruların ~%18'inde çıkar ve boşluğun ortasına değil bir kenarına yakın
     durur; karşı kenardan geçerek dokunmadan atlatılabilir (toplama yarıçapı
     görselden dar, sıyırmak toplamaz). Çarpan her boruyu o kadar
-    puan yapar. Çarpanlar **birikir**: süreyle sönmez, üstüne toplanır (×2 + ×3 =
-    ×5, tavan ×25) ve yalnız yeni oyun başlayınca ya da bombaya çarpınca sıfırlanır.
-    Bonusa girip çıkarken de korunur. Bomba yalnız skor 2'ye tam bölünürken
+    puan yapar. Çarpanlar süreyle sönmez; yeni oyun başlayınca, bombaya çarpınca
+    ve **bonus turu bitince** sıfırlanır. Bomba yalnız skor 2'ye tam bölünürken
     çıkar; boru üretildikten sonra skor tekleşmişse patlamaz ("PATLAMADI"),
     yani puan her zaman tam bölünür. Zorluk skora değil geçilen boru sayısına bağlı.
 

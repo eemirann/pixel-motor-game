@@ -224,14 +224,15 @@
 
   // Boruların arasına düşen çarpanlar. Ağırlık: ne kadar sık çıkacağı.
   const PICKS = [
-    { t: "x2",   m: 2,   w: 49, c: "#7ef08a", label: "×2" },
-    { t: "x3",   m: 3,   w: 25, c: "#63d7ff", label: "×3" },
-    { t: "x5",   m: 5,   w: 11, c: "#ffdc63", label: "×5" },
-    // katlayan: mevcut çarpanı ikiye katlar, süreyi tazeler
-    { t: "kat",  m: 2,   w: 10, c: "#ff9ae0", label: "×2" },
+    { t: "x2",   m: 2,   w: 45, c: "#7ef08a", label: "×2" },
+    { t: "x3",   m: 3,   w: 24, c: "#63d7ff", label: "×3" },
+    { t: "x5",   m: 5,   w: 12, c: "#ffdc63", label: "×5" },
+    { t: "x10",  m: 10,  w: 6,  c: "#c08bff", label: "×10" },
+    // katlayan: mevcut çarpanı ikiye katlar
+    { t: "kat",  m: 2,   w: 8,  c: "#ff9ae0", label: "×2" },
     { t: "bomb", m: 0.5, w: 5,  c: "#ff6b6b", label: "" }
   ];
-  const MULT_CAP = 25;        // çarpan tavanı (katlaya katlaya şişmesin)
+  const MULT_CAP = 50;        // çarpan tavanı
   const PICK_W = PICKS.reduce((s, p) => s + p.w, 0);
   const PICK_R = 13;
 
@@ -257,14 +258,16 @@
 
   // Bonusa özel çarpan küreleri. Büyükleri nadir; w = ağırlık.
   const BONUS_MULTS = [
-    { m: 2,  w: 56, c: "#7ef08a", r: 16 },
-    { m: 3,  w: 28, c: "#63d7ff", r: 16 },
-    { m: 10, w: 11, c: "#c08bff", r: 18 },
-    { m: 25, w: 4,  c: "#ffa14a", r: 20 },
-    { m: 50, w: 1,  c: "#ff4f7d", r: 22 }
+    { m: 2,   w: 46, c: "#7ef08a", r: 16 },
+    { m: 3,   w: 26, c: "#63d7ff", r: 16 },
+    { m: 10,  w: 14, c: "#c08bff", r: 18 },
+    { m: 25,  w: 8,  c: "#ffa14a", r: 20 },
+    { m: 50,  w: 6,  c: "#ff4f7d", r: 22 },
+    // ×100 yalnız BAĞIMLI'nın şeker bonusunda
+    { m: 100, w: 2,  c: "#ffffff", r: 24, only: "candy" }
   ];
-  const STACK_CAP = 25;      // fırtınada biriken çarpanın tavanı
-  const BM_W = BONUS_MULTS.reduce((s, o) => s + o.w, 0);
+  const STACK_CAP = 100;     // bonusta biriken çarpanın tavanı
+
 
   // Fırtına bonusunda (BUKLE) yukarıdan düşen yıldırımlar
   const BOLT  = { v: 1, r: 14, c: "#8fdcff", bolt: true };
@@ -274,9 +277,11 @@
   let thrower = { x: 0, flash: 0 };   // yukarıdan yıldırım atan bulut
   const stackSum = () => Math.min(STACK_CAP, stack.reduce((s, v) => s + v, 0)) || 1;
   function rollMult() {
-    let r = Math.random() * BM_W;
-    for (const o of BONUS_MULTS) { if (r < o.w) return o; r -= o.w; }
-    return BONUS_MULTS[0];
+    const list = BONUS_MULTS.filter(o => !o.only || o.only === bonusMode);
+    const total = list.reduce((s, o) => s + o.w, 0);
+    let r = Math.random() * total;
+    for (const o of list) { if (r < o.w) return o; r -= o.w; }
+    return list[0];
   }
 
   // ---------------------------------------------------------------- assets
@@ -443,7 +448,6 @@
     const ch = CHARS[sel];
     if (!ch.candy && !ch.storm) return null;               // bonusu olmayan karakter
     if (Math.random() < STAR_CHANCE) return place(STAR);   // bonus bileti
-    if (!ch.candy) return null;                            // boru çarpanları yalnız BAĞIMLI'da
     if (Math.random() > 0.18) return null;
 
     let r = Math.random() * PICK_W;
@@ -786,8 +790,11 @@
       stack = [];
     } else if (isKat) {
       mult = Math.min(MULT_CAP, mult * k.def.m);   // üstüne katlanır
+    } else if (CHARS[sel].storm) {
+      // BUKLE: boru çarpanları çarpılarak birikir (×2 sonra ×3 = ×6)
+      mult = Math.min(MULT_CAP, mult * k.def.m);
     } else {
-      // Çarpanlar birikir: süreyle sönmez, yeni oyunda sıfırlanır.
+      // BAĞIMLI: toplanarak birikir (×2 sonra ×3 = ×5)
       mult = mult === 1 ? k.def.m : Math.min(MULT_CAP, mult + k.def.m);
     }
     multT = 0;
@@ -895,7 +902,8 @@
   function endBonus() {
     state = PLAY;
     bonusEndT = 1.6;
-    mult = stackSum();     // birikim oyuna taşınır, yalnız yeni oyunda sıfırlanır
+    mult = 1;              // bonus bitince birikim sıfırlanır
+    stack = [];
     multT = 0;
     items.length = 0;
     flashA = 0.7;
@@ -971,7 +979,7 @@
       }, extra));
     };
 
-    if (r < 0.06) make({ def: null, mo: rollMult() }, 0, 0);
+    if (r < 0.06) { const o = rollMult(); make({ def: null, mo: o, mult: o.m }, 0, 0); }
     else if (r < 0.16) make({ def: BOLT_G }, 0, 0);
     else if (r < 0.45) { make({ def: BOLT }, -26, 0); make({ def: BOLT }, 0, 30); make({ def: BOLT }, 26, 60); }
     else make({ def: BOLT }, 0, 0);
